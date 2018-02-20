@@ -5,9 +5,12 @@ section EliaGridData;
 shared EliaGridData.GenerationWind = () =>
     let
         Today = Date.From(DateTime.LocalNow()),
-        SevenDaysAgo = Date.AddDays(Today, -7)
+        SevenDaysAgo = Date.AddDays(Today, -7),
+        Url = "http://publications.elia.be/Publications/Publications/WindForecasting.v2.svc/GetForecastData?beginDate=" & Date.ToText(SevenDaysAgo, "yyyy-MM-dd") & "&endDate=" & Date.ToText(Today, "yyyy-MM-dd") & "&isOffshore=&isEliaConnected",
+        Source = Xml.Tables(Web.Contents(Url)),
+        Table = Source{1}[Table]{0}[Table]
     in
-        SevenDaysAgo;
+        Table;
 
 // Data Source Kind description
 EliaGridData = [
