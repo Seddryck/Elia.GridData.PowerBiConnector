@@ -3,7 +3,12 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{4DF76451-A46A-4C0B-BE03-459FAAFA07E6}") = "Elia.GridData.PowerBiConnector", "Elia.GridData.PowerBiConnector\Elia.GridData.PowerBiConnector.mproj", "{457CB27E-C0AC-491D-AAAD-E07B4538DC3E}"
+Project("{4DF76451-A46A-4C0B-BE03-459FAAFA07E6}") = "Elia.GridData.PowerBiConnector", "Elia.GridData.PowerBiConnector\Elia.GridData.PowerBiConnector.mproj", "{038CB22D-DF65-479E-A793-3C1F473F9639}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D33933D0-2F6B-4216-8A13-10EB36773AA9}"
+	ProjectSection(SolutionItems) = preProject
+		copy.cmd = copy.cmd
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +16,10 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{457CB27E-C0AC-491D-AAAD-E07B4538DC3E}.Debug|x86.ActiveCfg = Debug|x86
-		{457CB27E-C0AC-491D-AAAD-E07B4538DC3E}.Debug|x86.Build.0 = Debug|x86
-		{457CB27E-C0AC-491D-AAAD-E07B4538DC3E}.Release|x86.ActiveCfg = Release|x86
-		{457CB27E-C0AC-491D-AAAD-E07B4538DC3E}.Release|x86.Build.0 = Release|x86
+		{038CB22D-DF65-479E-A793-3C1F473F9639}.Debug|x86.ActiveCfg = Debug|x86
+		{038CB22D-DF65-479E-A793-3C1F473F9639}.Debug|x86.Build.0 = Debug|x86
+		{038CB22D-DF65-479E-A793-3C1F473F9639}.Release|x86.ActiveCfg = Release|x86
+		{038CB22D-DF65-479E-A793-3C1F473F9639}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

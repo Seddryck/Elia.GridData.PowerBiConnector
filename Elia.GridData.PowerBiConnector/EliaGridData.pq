@@ -13,15 +13,15 @@ EliaGridData = [
     Authentication = [
         Implicit = []
     ],
-    Label = Extension.LoadString("DataSourceLabel")
+    Label = Extension.LoadString("DataSourceLabel") //Label visible when requesting credentials
 ];
 
 // Data Source UI publishing description
 EliaGridData.Publish = [
     Beta = true,
     Category = "Other",
-    ButtonText = { Extension.LoadString("ButtonTitle"), Extension.LoadString("ButtonHelp") },
-    LearnMoreUrl = "https://powerbi.microsoft.com/",
+    ButtonText = { Extension.LoadString("ButtonTitle"), Extension.LoadString("ButtonHelp") }, //List of text items that will be displayed next to the data source's icon in the Power BI Get Data dialog.
+    LearnMoreUrl = Extension.LoadString("LearnMoreUrl"),
     SourceImage = EliaGridData.Icons,
     SourceTypeImage = EliaGridData.Icons
 ];
