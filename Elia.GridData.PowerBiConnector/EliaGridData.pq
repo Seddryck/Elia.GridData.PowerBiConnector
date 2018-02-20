@@ -2,7 +2,7 @@
 section EliaGridData;
 
 [DataSource.Kind="EliaGridData", Publish="EliaGridData.Publish"]
-shared EliaGridData.GenerationWind = Value.ReplaceType(EliaGridData.GenerationWindImpl, EliaGridDataType);
+shared EliaGridData.Generation = Value.ReplaceType(EliaGridData.GenerationSolarImpl, EliaGridDataType);
 
 EliaGridData.GenerationWindImpl = (beginDate as date, dayCount as number) =>
     let
@@ -15,6 +15,19 @@ EliaGridData.GenerationWindImpl = (beginDate as date, dayCount as number) =>
         expandedTimeInformation = Custom.ExpandTimeInformation(changedType),
         selectedColumns = Table.SelectColumns(expandedTimeInformation, {"UtcDate", "UtcTime", "LocalDate", "LocalTime", "LocalDateTime", "LocalString", "MonitoredCapacity", "Realtime", "LoadFactor", "MostRecentForecast", "DayAheadForecast", "WeekAheadForecast"}),
         reorderedColumns = Table.ReorderColumns(selectedColumns,{"UtcDate", "UtcTime", "LocalDate", "LocalTime", "LocalDateTime", "LocalString", "MonitoredCapacity", "Realtime", "LoadFactor", "MostRecentForecast", "DayAheadForecast", "WeekAheadForecast"})    
+    in
+        reorderedColumns;
+
+EliaGridData.GenerationSolarImpl = (beginDate as date, dayCount as number) =>
+    let
+        url = "http://publications.elia.be/Publications/Publications/SolarForecasting.v4.svc/GetChartDataForZoneXml?dateFrom=" & Date.ToText(beginDate, "yyyy-MM-dd") & "&dateTo=" &  Date.ToText(Date.AddDays(beginDate, dayCount), "yyyy-MM-dd") & "&sourceId=1",
+        source = Xml.Tables(Web.Contents(url)),
+        removedOtherColumns = Table.SelectColumns(source,{"SolarForecastingChartDataForZoneItems", "SourceId"}),
+        expanded = Table.ExpandTableColumn(removedOtherColumns, "SolarForecastingChartDataForZoneItems", {"SolarForecastingChartDataForZoneItem"}, {"SolarForecastingChartDataForZoneItem"}),
+        expanded2 = Table.ExpandTableColumn(expanded, "SolarForecastingChartDataForZoneItem", {"DayAheadForecast", "LoadFactor", "MonitoredCapacity", "MostRecentForecast", "RealTime", "StartsOn", "WeekAheadForecast"}, {"DayAheadForecast", "LoadFactor", "MonitoredCapacity", "MostRecentForecast", "RealTime", "StartsOn.1", "WeekAheadForecast"}),
+        expandedTimeInformation = Custom.ExpandTimeInformation(expanded2, "StartsOn.1"),
+        renamedColumns = Table.RenameColumns(expandedTimeInformation, {{"RealTime", "Realtime"}}),
+        reorderedColumns = Table.ReorderColumns(renamedColumns,{"UtcDate", "UtcTime", "LocalDate", "LocalTime", "LocalDateTime", "LocalString", "MonitoredCapacity", "Realtime", "LoadFactor", "MostRecentForecast", "DayAheadForecast", "WeekAheadForecast", "SourceId"})    
     in
         reorderedColumns;
 
@@ -74,9 +87,10 @@ Custom.ExpandTable = (table as table, columnNames as list) =>
     in
         expandedTable;
 
-Custom.ExpandTimeInformation = (table as table) =>  
+Custom.ExpandTimeInformation = (table as table, optional _columnName as text) =>  
     let
-        expandedStartsOn = Table.ExpandTableColumn(table, "StartsOn", {"http://schemas.datacontract.org/2004/07/System"}, {"StartsOn"}),
+        columnName = if _columnName=null then "StartsOn" else _columnName,
+        expandedStartsOn = Table.ExpandTableColumn(table, columnName, {"http://schemas.datacontract.org/2004/07/System"}, {"StartsOn"}),
         expandedStartsOn2 = Table.ExpandTableColumn(expandedStartsOn, "StartsOn", {"DateTime"}, {"DateTime"}),
         split = Table.SplitColumn(expandedStartsOn2, "DateTime", Splitter.SplitTextByDelimiter("T", QuoteStyle.Csv), {"UtcDate", "UtcTime"}),
         typeToDate = Table.TransformColumnTypes(split,{{"UtcDate", type date}, {"UtcTime", type text}}),
