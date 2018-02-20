@@ -2,7 +2,17 @@
 section EliaGridData;
 
 [DataSource.Kind="EliaGridData", Publish="EliaGridData.Publish"]
-shared EliaGridData.Generation = Value.ReplaceType(EliaGridData.GenerationSolarImpl, EliaGridDataType);
+shared EliaGridData.Contents = () as table =>
+    let
+        objects = #table(
+            {"Name",                "Key",              "Data",                                                 "ItemKind", "ItemName", "IsLeaf"},{
+            {"Solar generation",   "Solar generation", EliaGridData.GenerationSolarImpl(SevenDaysAgo, 7),      "Table",    "Table",    true},
+            {"Wind generation",    "Wind generation",  EliaGridData.GenerationWindImpl(SevenDaysAgo, 7),       "Table",    "Table",    true}           
+        }),
+        NavTable = Table.ToNavigationTable(objects, {"Key"}, "Name", "Data", "ItemKind", "ItemName", "IsLeaf")
+    in
+        NavTable;
+
 
 EliaGridData.GenerationWindImpl = (beginDate as date, dayCount as number) =>
     let
@@ -114,3 +124,26 @@ let
     record = [LocalDate = Date.From(localTime), LocalTime = Time.From(localTime), LocalDateTime = localTime, LocalString = localString]
 in
     record;
+
+Table.ToNavigationTable = (
+    table as table,
+    keyColumns as list,
+    nameColumn as text,
+    dataColumn as text,
+    itemKindColumn as text,
+    itemNameColumn as text,
+    isLeafColumn as text
+) as table =>
+    let
+        tableType = Value.Type(table),
+        newTableType = Type.AddTableKey(tableType, keyColumns, true) meta 
+        [
+            NavigationTable.NameColumn = nameColumn, 
+            NavigationTable.DataColumn = dataColumn,
+            NavigationTable.ItemKindColumn = itemKindColumn, 
+            Preview.DelayColumn = itemNameColumn, 
+            NavigationTable.IsLeafColumn = isLeafColumn
+        ],
+        navigationTable = Value.ReplaceType(table, newTableType)
+    in
+        navigationTable;
