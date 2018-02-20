@@ -4,7 +4,6 @@ section EliaGridData;
 [DataSource.Kind="EliaGridData", Publish="EliaGridData.Publish"]
 shared EliaGridData.GenerationWind = Value.ReplaceType(EliaGridData.GenerationWindImpl, EliaGridDataType);
 
-
 EliaGridData.GenerationWindImpl = (beginDate as date, dayCount as number) =>
     let
         url = "http://publications.elia.be/Publications/Publications/WindForecasting.v2.svc/GetForecastData?beginDate=" & Date.ToText(beginDate, "yyyy-MM-dd") & "&endDate=" & Date.ToText(Date.AddDays(beginDate, dayCount), "yyyy-MM-dd") & "&isOffshore=&isEliaConnected",
