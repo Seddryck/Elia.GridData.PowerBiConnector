@@ -4,13 +4,14 @@ section EliaGridData;
 [DataSource.Kind="EliaGridData", Publish="EliaGridData.Publish"]
 shared EliaGridData.GenerationWind = () =>
     let
-        Today = Date.From(DateTime.LocalNow()),
-        SevenDaysAgo = Date.AddDays(Today, -7),
-        Url = "http://publications.elia.be/Publications/Publications/WindForecasting.v2.svc/GetForecastData?beginDate=" & Date.ToText(SevenDaysAgo, "yyyy-MM-dd") & "&endDate=" & Date.ToText(Today, "yyyy-MM-dd") & "&isOffshore=&isEliaConnected",
-        Source = Xml.Tables(Web.Contents(Url)),
-        Table = Source{1}[Table]{0}[Table]
+        today = Date.From(DateTime.LocalNow()),
+        sevenDaysAgo = Date.AddDays(today, -7),
+        url = "http://publications.elia.be/Publications/Publications/WindForecasting.v2.svc/GetForecastData?beginDate=" & Date.ToText(sevenDaysAgo, "yyyy-MM-dd") & "&endDate=" & Date.ToText(today, "yyyy-MM-dd") & "&isOffshore=&isEliaConnected",
+        source = Xml.Tables(Web.Contents(url)),
+        table = source{1}[Table]{0}[Table],
+        expandedTable = Custom.ExpandTable(table, {"Bid", "Realtime", "LoadFactor"})
     in
-        Table;
+        expandedTable;
 
 // Data Source Kind description
 EliaGridData = [
@@ -34,3 +35,12 @@ EliaGridData.Icons = [
     Icon16 = { Extension.Contents("EliaGridData16.png"), Extension.Contents("EliaGridData20.png"), Extension.Contents("EliaGridData24.png"), Extension.Contents("EliaGridData32.png") },
     Icon32 = { Extension.Contents("EliaGridData32.png"), Extension.Contents("EliaGridData40.png"), Extension.Contents("EliaGridData48.png"), Extension.Contents("EliaGridData64.png") }
 ];
+
+
+Custom.ExpandTable = (table as table, columnNames as list) =>  
+    let
+        columnType = (columnName as text) as text => Table.SingleRow(Table.SelectRows(Table.Schema(table), each [Name] = columnName))[TypeName],
+        expandColumn = (table as table, columnName as text) as table => if columnType(columnName) = "Table.Type" or columnType(columnName) = "Any.Type" then Table.ExpandTableColumn(table, columnName, {"Element:Text"}, {columnName}) else table,
+        expandedTable = List.Accumulate({"Bid", "Realtime", "LoadFactor"}, table, (state, current) => expandColumn(state, current))
+    in
+        expandedTable;
