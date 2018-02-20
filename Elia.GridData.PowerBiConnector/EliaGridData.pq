@@ -2,11 +2,12 @@
 section EliaGridData;
 
 [DataSource.Kind="EliaGridData", Publish="EliaGridData.Publish"]
-shared EliaGridData.Contents = () =>
+shared EliaGridData.GenerationWind = () =>
     let
-        Source = {1 .. 50}
+        Today = Date.From(DateTime.LocalNow()),
+        SevenDaysAgo = Date.AddDays(Today, -7)
     in
-        Source; 
+        SevenDaysAgo;
 
 // Data Source Kind description
 EliaGridData = [
