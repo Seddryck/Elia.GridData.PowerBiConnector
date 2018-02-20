@@ -6,7 +6,7 @@ shared EliaGridData.Contents = () =>
     let
         Source = {1 .. 50}
     in
-        Source;
+        Source; 
 
 // Data Source Kind description
 EliaGridData = [
