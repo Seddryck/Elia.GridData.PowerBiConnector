@@ -11,9 +11,6 @@ shared EliaGridData.Contents = () =>
 // Data Source Kind description
 EliaGridData = [
     Authentication = [
-        // Key = [],
-        // UsernamePassword = [],
-        // Windows = [],
         Implicit = []
     ],
     Label = Extension.LoadString("DataSourceLabel")
