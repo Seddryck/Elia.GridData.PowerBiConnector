@@ -2,11 +2,12 @@
 section EliaGridData;
 
 [DataSource.Kind="EliaGridData", Publish="EliaGridData.Publish"]
-shared EliaGridData.GenerationWind = () =>
+shared EliaGridData.GenerationWind = Value.ReplaceType(EliaGridData.GenerationWindImpl, EliaGridDataType);
+
+
+EliaGridData.GenerationWindImpl = (beginDate as date, dayCount as number) =>
     let
-        today = Date.From(DateTime.LocalNow()),
-        sevenDaysAgo = Date.AddDays(today, -7),
-        url = "http://publications.elia.be/Publications/Publications/WindForecasting.v2.svc/GetForecastData?beginDate=" & Date.ToText(sevenDaysAgo, "yyyy-MM-dd") & "&endDate=" & Date.ToText(today, "yyyy-MM-dd") & "&isOffshore=&isEliaConnected",
+        url = "http://publications.elia.be/Publications/Publications/WindForecasting.v2.svc/GetForecastData?beginDate=" & Date.ToText(beginDate, "yyyy-MM-dd") & "&endDate=" & Date.ToText(Date.AddDays(beginDate, dayCount), "yyyy-MM-dd") & "&isOffshore=&isEliaConnected",
         source = Xml.Tables(Web.Contents(url)),
         table = source{1}[Table]{0}[Table],
         expandedTable = Custom.ExpandTable(table, {"Bid", "Realtime", "LoadFactor"}),
@@ -17,6 +18,28 @@ shared EliaGridData.GenerationWind = () =>
         reorderedColumns = Table.ReorderColumns(selectedColumns,{"UtcDate", "UtcTime", "LocalDate", "LocalTime", "LocalDateTime", "LocalString", "MonitoredCapacity", "Realtime", "LoadFactor", "MostRecentForecast", "DayAheadForecast", "WeekAheadForecast"})    
     in
         reorderedColumns;
+
+EliaGridDataType = type function (
+    beginDate as (type date meta[
+        Documentation.FieldCaption = "Begin date",
+        Documentation.FieldDescription = "The first date (in local time) to get data.",
+        Documentation.SampleValues = {#date(2017,5,1), #date(2015,1,25)}
+    ]),
+    dayCount as (type number meta[
+        Documentation.FieldCaption = "Days to retrieve",
+        Documentation.FieldDescription = "How many days do you want to retrieve from this service.",
+        Documentation.SampleValues = {2, 10}
+    ])
+)
+as table meta [
+    Documentation.Name = "Observations and forecasts at the quarter-hour granularity",
+    Documentation.LongDescription = "List of quarter-hour values for observed and forecasted power produced in Belgium",
+    Documentation.Examples = {[
+        Description = "Returns a table with all forecasts and observations for the days between 5th of October 2017 and 9th of October 2017.",
+        Code = "EliaWindForecast.Contents(date(#2017,10,5), 5)",
+        Result = "#table({""UtcDate""}, {{""UtcTime""}, {""LocalDate""}})"
+        ]}
+];
 
 // Data Source Kind description
 EliaGridData = [
@@ -41,6 +64,8 @@ EliaGridData.Icons = [
     Icon32 = { Extension.Contents("EliaGridData32.png"), Extension.Contents("EliaGridData40.png"), Extension.Contents("EliaGridData48.png"), Extension.Contents("EliaGridData64.png") }
 ];
 
+Today = Date.From(DateTime.LocalNow());
+SevenDaysAgo = Date.AddDays(Today, -7);
 
 Custom.ExpandTable = (table as table, columnNames as list) =>  
     let
