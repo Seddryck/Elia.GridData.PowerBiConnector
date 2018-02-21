@@ -5,16 +5,63 @@ section EliaGridData;
 shared EliaGridData.Contents = () as table =>
     let
         objects = #table(
-            {"Name",                "Key",              "Data",                                                 "ItemKind", "ItemName", "IsLeaf"},{
-            {"Solar generation",   "Solar generation", EliaGridData.GenerationSolarImpl(SevenDaysAgo, 7),      "Table",    "Table",    true},
-            {"Wind generation",    "Wind generation",  EliaGridData.GenerationWindImpl(SevenDaysAgo, 7),       "Table",    "Table",    true}           
+            {"Name",                "Key",                  "Data",                             "ItemKind", "ItemName", "IsLeaf"},{
+            {"Generation",          "Generation",           CreateNavTableGeneration(),         "Folder",    "Folder",    false},
+            {"Balancing",           "Balancing",            CreateNavTableBalancing(),          "Folder",    "Folder",    false},
+            {"Regulation capacity", "Regulation capacity",  CreateNavTableRegulationCapacity(), "Folder",    "Folder",    false},
+            {"Grid usage",          "Grid usage",           CreateNavTableGridUsage(),          "Folder",    "Folder",    false}
+        }),
+        NavTable = Table.ToNavigationTable(objects, {"Key"}, "Name", "Data", "ItemKind", "ItemName", "IsLeaf")
+    in
+        NavTable;
+
+CreateNavTableGeneration = () as table => 
+    let
+        objects = #table(
+            {"Name",                "Key",              "Data",                                             "ItemKind", "ItemName", "IsLeaf"},{
+            {"Solar generation",   "Solar generation", EliaGridData.GenerationSolar(SevenDaysAgo, 7),      "Table",    "Table",    true},
+            {"Wind generation",    "Wind generation",  EliaGridData.GenerationWind(SevenDaysAgo, 7),       "Table",    "Table",    true}
+        }),
+        NavTable = Table.ToNavigationTable(objects, {"Key"}, "Name", "Data", "ItemKind", "ItemName", "IsLeaf")
+    in
+        NavTable;
+
+CreateNavTableBalancing = () as table => 
+    let
+        objects = #table(
+            {"Name",                "Key",              "Data",                                             "ItemKind", "ItemName", "IsLeaf"},{
+            {"System imbalance",   "System imbalance", #table({"Column1"}, {{"Not implemented"}}),      "Table",    "Table",    true},
+            {"Imbalance price",    "Imbalance price",  #table({"Column1"}, {{"Not implemented"}}),       "Table",    "Table",    true}
+        }),
+        NavTable = Table.ToNavigationTable(objects, {"Key"}, "Name", "Data", "ItemKind", "ItemName", "IsLeaf")
+    in
+        NavTable;
+
+CreateNavTableRegulationCapacity = () as table => 
+    let
+        objects = #table(
+            {"Name",                "Key",              "Data",                                             "ItemKind", "ItemName", "IsLeaf"},{
+            {"Available regulation capacity - Volume per product",              "Available regulation capacity - Volume per product",              #table({"Column1"}, {{"Not implemented"}}),      "Table",    "Table",    true},
+            {"Available regulation capacity - Marginal price per product",      "Available regulation capacity - Marginal price per product",      #table({"Column1"}, {{"Not implemented"}}),       "Table",    "Table",    true},
+            {"Available regulation capacity - Marginal price per volume level", "Available regulation capacity - Marginal price per volume level", #table({"Column1"}, {{"Not implemented"}}),       "Table",    "Table",    true},
+            {"Used regulation capacity",                                        "Used regulation capacity",                                        #table({"Column1"}, {{"Not implemented"}}),       "Table",    "Table",    true}
+        }),
+        NavTable = Table.ToNavigationTable(objects, {"Key"}, "Name", "Data", "ItemKind", "ItemName", "IsLeaf")
+    in
+        NavTable;
+
+CreateNavTableGridUsage = () as table => 
+    let
+        objects = #table(
+            {"Name",                "Key",              "Data",                                          "ItemKind", "ItemName", "IsLeaf"},{
+            {"Infeed",              "Infeed",           #table({"Column1"}, {{"Not implemented"}}),      "Table",    "Table",    true}
         }),
         NavTable = Table.ToNavigationTable(objects, {"Key"}, "Name", "Data", "ItemKind", "ItemName", "IsLeaf")
     in
         NavTable;
 
 
-EliaGridData.GenerationWindImpl = (beginDate as date, dayCount as number) =>
+shared EliaGridData.GenerationWind = (beginDate as date, dayCount as number) =>
     let
         url = "http://publications.elia.be/Publications/Publications/WindForecasting.v2.svc/GetForecastData?beginDate=" & Date.ToText(beginDate, "yyyy-MM-dd") & "&endDate=" & Date.ToText(Date.AddDays(beginDate, dayCount), "yyyy-MM-dd") & "&isOffshore=&isEliaConnected",
         source = Xml.Tables(Web.Contents(url)),
@@ -28,7 +75,7 @@ EliaGridData.GenerationWindImpl = (beginDate as date, dayCount as number) =>
     in
         reorderedColumns;
 
-EliaGridData.GenerationSolarImpl = (beginDate as date, dayCount as number) =>
+shared EliaGridData.GenerationSolar = (beginDate as date, dayCount as number) =>
     let
         url = "http://publications.elia.be/Publications/Publications/SolarForecasting.v4.svc/GetChartDataForZoneXml?dateFrom=" & Date.ToText(beginDate, "yyyy-MM-dd") & "&dateTo=" &  Date.ToText(Date.AddDays(beginDate, dayCount), "yyyy-MM-dd") & "&sourceId=1",
         source = Xml.Tables(Web.Contents(url)),
@@ -37,7 +84,8 @@ EliaGridData.GenerationSolarImpl = (beginDate as date, dayCount as number) =>
         expanded2 = Table.ExpandTableColumn(expanded, "SolarForecastingChartDataForZoneItem", {"DayAheadForecast", "LoadFactor", "MonitoredCapacity", "MostRecentForecast", "RealTime", "StartsOn", "WeekAheadForecast"}, {"DayAheadForecast", "LoadFactor", "MonitoredCapacity", "MostRecentForecast", "RealTime", "StartsOn.1", "WeekAheadForecast"}),
         expandedTimeInformation = Custom.ExpandTimeInformation(expanded2, "StartsOn.1"),
         renamedColumns = Table.RenameColumns(expandedTimeInformation, {{"RealTime", "Realtime"}}),
-        reorderedColumns = Table.ReorderColumns(renamedColumns,{"UtcDate", "UtcTime", "LocalDate", "LocalTime", "LocalDateTime", "LocalString", "MonitoredCapacity", "Realtime", "LoadFactor", "MostRecentForecast", "DayAheadForecast", "WeekAheadForecast", "SourceId"})    
+        changedType = Table.TransformColumnTypes(renamedColumns,{{"DayAheadForecast", type number}, {"LoadFactor", type number}, {"MonitoredCapacity", type number}, {"MostRecentForecast", type number}, {"Realtime", type number}, {"WeekAheadForecast", type number}}),
+        reorderedColumns = Table.ReorderColumns(changedType,{"UtcDate", "UtcTime", "LocalDate", "LocalTime", "LocalDateTime", "LocalString", "MonitoredCapacity", "Realtime", "LoadFactor", "MostRecentForecast", "DayAheadForecast", "WeekAheadForecast", "SourceId"})    
     in
         reorderedColumns;
 
