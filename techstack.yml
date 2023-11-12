@@ -1,0 +1,30 @@
+repo_name: Seddryck/Elia.GridData.PowerBiConnector
+report_id: 1340d165f6506a0e98b35f9ec5b38014
+repo_type: Public
+timestamp: '2023-11-12T20:24:31+00:00'
+requested_by: Seddryck
+provider: github
+branch: master
+detected_tools_count: 2
+tools:
+- name: Git
+  description: Fast, scalable, distributed revision control system
+  website_url: http://git-scm.com/
+  open_source: true
+  hosted_saas: false
+  category: Build, Test, Deploy
+  sub_category: Version Control System
+  image_url: https://img.stackshare.io/service/1046/git.png
+  detection_source: Repo Metadata
+- name: Visual Studio
+  description: State-of-the-art tools and services that you can use to create great
+    apps for devices, the cloud, and everything in between.
+  website_url: http://msdn.microsoft.com/en-us/vstudio/aa718325.aspx
+  open_source: false
+  hosted_saas: false
+  category: Build, Test, Deploy
+  sub_category: Integrated Development Environment
+  image_url: https://img.stackshare.io/service/1451/SR2hUhQN.png
+  detection_source: Elia.GridData.sln
+  last_updated_by: Cédric L. Charlier
+  last_updated_on: 2018-02-20 21:34:05.000000000 Z
